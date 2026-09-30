@@ -26,3 +26,14 @@
 @media(max-width:800px){.stories .story-grid{gap:16px}.story-column{gap:18px}.stories .story-image,.stories .story:nth-child(2) .story-image{height:290px}.stories .story-label{padding:15px}.stories .story-label h3{font-size:18px}.story-window{height:760px}}
 @media(max-width:600px){.stories{padding-left:5%;padding-right:5%}.stories .story-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;padding-top:70px}.stories .story-image,.stories .story:nth-child(2) .story-image{height:240px}.stories .story-label{padding:13px 10px}.stories .story-label h3{font-size:16px}.story-window{height:1120px}}
 @media(prefers-reduced-motion:reduce){.story-window{height:auto;mask-image:none;overflow:visible}.stories .story-grid{padding-top:0}.story-column{will-change:auto}}
+
+/* Portraits emerge behind the three process cards with the scroll. */
+.steps{align-items:start;gap:28px}
+.step-scene{position:relative;height:600px;isolation:isolate;display:flex;align-items:flex-end;perspective:1000px}
+.step-portrait{position:absolute;z-index:0;bottom:45px;left:12%;width:76%;height:330px;border-radius:14px;overflow:hidden;box-shadow:0 15px 40px #0007;transform-origin:50% 90%;will-change:transform}
+.step-portrait img{width:100%;height:100%;object-fit:cover}
+.steps .step-scene article{position:relative;z-index:1;width:100%;min-height:240px;background:#24201f;box-shadow:0 -8px 25px #0002}
+.steps .step-scene:nth-child(2) article{background:#34211e}
+.steps .step-scene:nth-child(3) article{background:#282222}
+@media(max-width:800px){.steps{grid-template-columns:1fr;gap:38px;max-width:520px;margin-inline:auto}.step-scene{height:580px}.step-portrait{width:66%;left:17%;height:340px}.steps .step-scene article{min-height:210px}}
+@media(prefers-reduced-motion:reduce){.step-portrait{will-change:auto}}

@@ -64,9 +64,30 @@ function animateHero(){
 }
 let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(animateHero,150)});reduced.addEventListener('change',animateHero);
 if(!reduced.matches){
- Motion.inView('.bento-card, .steps article',element=>{Motion.animate(element,{opacity:[.3,1],y:[35,0]},{duration:.7,ease:'easeOut'})},{amount:.15});
- document.querySelectorAll('.steps article').forEach((el,i)=>{el.addEventListener('pointerenter',()=>Motion.animate(el,{y:-12,rotate:i%2?2:-2},{duration:.35}));el.addEventListener('pointerleave',()=>Motion.animate(el,{y:0,rotate:0},{duration:.35}))});
+ Motion.inView('.bento-card',element=>{Motion.animate(element,{opacity:[.3,1],y:[35,0]},{duration:.7,ease:'easeOut'})},{amount:.15});
+
 }
+// A portrait rises from behind each process card as it enters the viewport.
+document.querySelectorAll('.steps article').forEach((article,i)=>{
+ const scene=document.createElement('div');scene.className='step-scene';
+ article.before(scene);
+ const picture=document.createElement('div');picture.className='step-portrait';
+ const photo=photos[[3,5,7][i]];
+ picture.innerHTML=`<img src="${photo.src}" alt="${photo.alt}" loading="lazy">`;
+ scene.append(picture,article);
+});
+let stepCleanup=[];
+function animateSteps(){
+ stepCleanup.forEach(fn=>fn());stepCleanup=[];
+ document.querySelectorAll('.step-scene').forEach((scene,i)=>{
+  const portrait=scene.querySelector('.step-portrait');
+  const angle=[-7,5,-4][i];
+  if(reduced.matches){portrait.style.transform=`translateY(-205px) rotate(${angle}deg)`;return}
+  const animation=Motion.animate(portrait,{y:[135,-205],rotate:[0,angle],scale:[.86,1]},{duration:1,ease:'linear',autoplay:false});
+  stepCleanup.push(Motion.scroll(animation,{target:scene,offset:[`start ${95-i*4}%`,`start ${28-i*4}%`]}),()=>animation.stop());
+ });
+}
+animateSteps();reduced.addEventListener('change',animateSteps);
 let favorites=new Set(),shared=new Set(),galleryFilter='all',guestMode=false,allowDownloads=true;
 function galleryCards(){const items=photos.map((p,i)=>({p,i})).filter(({i})=>guestMode?shared.has(i):galleryFilter==='favorites'?favorites.has(i):galleryFilter==='shared'?shared.has(i):true);return items.length?items.map(({p,i})=>`<article class="gallery-card"><button class="gallery-photo" data-photo="${i}" aria-label="Ampliar ${p.alt}"><img src="${p.src}" alt="${p.alt}" loading="lazy"></button>${guestMode?`<div class="gallery-actions"><span class="gallery-note">${String(i+1).padStart(2,'0')}</span>${allowDownloads?`<button class="back-link" data-download="${i}">Descargar muestra</button>`:''}</div>`:`<div class="gallery-actions"><label><input type="checkbox" data-share="${i}" ${shared.has(i)?'checked':''}>Para invitados</label><button class="favorite" data-favorite="${i}" aria-label="Favorita: ${p.alt}" aria-pressed="${favorites.has(i)}">${favorites.has(i)?'♥':'♡'}</button></div>`}</article>`).join(''):`<p class="empty-gallery">${galleryFilter==='favorites'?'Marca el corazón de las fotografías que más os gusten.':'Selecciona fotos en «Todas» para crear vuestra galería de invitados.'}</p>`}
 function renderGallery(){const g=$('#gallery-view');g.innerHTML=`<div class="gallery-shell ${guestMode?'guest-mode':''}"><div class="gallery-top"><button class="back-link" id="gallery-back">${guestMode?'Volver a nuestra galería':'Volver a Inti.Studio'}</button><span class="demo-badge">GALERÍA DE MUESTRA</span></div><div class="gallery-cover"><img src="${photos[0].src}" alt="Pareja junto a una ventana"><div class="gallery-cover-text"><span>${guestMode?'UN RECUERDO PARA COMPARTIR':'VUESTRA HISTORIA, SIEMPRE CERCA'}</span><h1>Clara & Mateo</h1><span>${guestMode?shared.size+' FOTOGRAFÍAS SELECCIONADAS':'EL DÍA QUE TODO EMPIEZA'}</span></div></div>${guestMode?`<p class="gallery-note">Vista de invitados · Solo aparecen las fotografías que habéis elegido compartir.</p>`:`<div class="gallery-toolbar"><div class="gallery-tabs" aria-label="Filtrar fotografías"><button data-filter="all" class="${galleryFilter==='all'?'active':''}">Todas (${photos.length})</button><button data-filter="favorites" class="${galleryFilter==='favorites'?'active':''}">Favoritas (${favorites.size})</button><button data-filter="shared" class="${galleryFilter==='shared'?'active':''}">Para invitados (${shared.size})</button></div><button class="dark-button" id="download-all">Descargar galería</button></div><div class="share-panel"><div><h3>Algunos recuerdos se comparten.</h3><p>Seleccionad las fotos que queréis mostrar a vuestros invitados.</p><div class="guest-switches"><label><input type="checkbox" id="allow-downloads" ${allowDownloads?'checked':''}> Permitir descargas</label></div></div><button class="dark-button" id="guest-preview" ${shared.size?'':'disabled'}>Ver como invitado (${shared.size})</button></div><p class="gallery-note">Prueba sin cuenta · La selección dura mientras esta página esté abierta. No se crea un enlace público.</p>`}<div class="gallery-grid">${galleryCards()}</div></div>`;
