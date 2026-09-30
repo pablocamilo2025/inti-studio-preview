@@ -3,7 +3,9 @@ const $=s=>document.querySelector(s);
 const layout=[[34,4,32,66,0],[14,18,24,41,-5],[62,14,24,42,4],[24,36,20,42,-6],[70,35,21,44,5],[16,63,24,36,-4],[54,70,20,32,3],[42,0,17,30,0]];
 const order=[0,3,2,5,6,4,7,1,0,2];
 $('#constellation').innerHTML=layout.map((l,i)=>`<button class="photo-card" aria-label="Ver: ${photos[order[i]].alt}" data-photo="${order[i]}" style="--x:${l[0]}%;--y:${l[1]}%;--w:${l[2]}%;--h:${l[3]}%;--r:${l[4]}deg"><img src="${photos[order[i]].src}" alt="${photos[order[i]].alt}" fetchpriority="${i===0?'high':'auto'}"></button>`).join('');
-$('#story-grid').innerHTML=photos.map((p,i)=>`<article class="story"><button data-photo="${i}" aria-label="Ver ${p.alt}"><div class="story-image"><img loading="lazy" src="${p.src}" alt="${p.alt}"></div><div class="story-label"><h3>${['Lo que empieza','La mesa compartida','Pequeños detalles','Antes de salir','Un poco de color','Los de siempre','Juntos','Lo que queda'][i]}</h3><span>0${i+1} / INTI</span></div></button></article>`).join('');
+const storyTitles=['Lo que empieza','La mesa compartida','Pequeños detalles','Antes de salir','Un poco de color','Los de siempre','Juntos','Lo que queda'];
+function storyCard(i){const p=photos[i];return `<article class="story"><button data-photo="${i}" aria-label="Ver ${p.alt}"><div class="story-image"><img loading="lazy" src="${p.src}" alt="${p.alt}"></div><div class="story-label"><h3>${storyTitles[i]}</h3><span>0${i+1} / INTI</span></div></button></article>`}
+
 $('#about-photo').src=photos[1].src;$('#frame-photo').src=photos[7].src;
 $('#credits-list').innerHTML=photos.map(p=>`<a href="${p.source}" target="_blank" rel="noopener">${p.credit} · ${p.alt}</a>`).join('');
 let currentPhoto=0;
@@ -16,6 +18,20 @@ $('#contact-open').onclick=()=>$('#contact-dialog').showModal();$('#credits-open
 $('#contact-form').onsubmit=e=>{e.preventDefault();$('#form-result').textContent='La prueba está completa. En la web final recibiréis una confirmación; aquí no se han enviado ni guardado datos.'};
 let toastTimer;function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),4200)}
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const storyMobile=matchMedia('(max-width:600px)');
+let storyCleanup=[];
+function animateStories(){
+ storyCleanup.forEach(fn=>fn());storyCleanup=[];
+ const groups=storyMobile.matches?[[0,2,4,6],[1,3,5,7]]:[[0,3,6],[1,4],[2,5,7]];
+ $('#story-grid').innerHTML=groups.map(ids=>`<div class="story-column">${ids.map(storyCard).join('')}</div>`).join('');
+ if(reduced.matches)return;
+ const ranges=storyMobile.matches?[[70,-280],[-65,-100]]:[[120,-320],[-50,-100],[-130,-370]];
+ document.querySelectorAll('.story-column').forEach((column,i)=>{
+  const animation=Motion.animate(column,{y:ranges[i]},{duration:1,ease:'linear',autoplay:false});
+  storyCleanup.push(Motion.scroll(animation,{target:$('#historias'),offset:['start end','end start']}),()=>animation.stop());
+ });
+}
+animateStories();storyMobile.addEventListener('change',animateStories);reduced.addEventListener('change',animateStories);
 let heroCleanup=[],entrancePlayed=false;
 function animateHero(){
  heroCleanup.forEach(fn=>fn());heroCleanup=[];
@@ -48,7 +64,7 @@ function animateHero(){
 }
 let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(animateHero,150)});reduced.addEventListener('change',animateHero);
 if(!reduced.matches){
- Motion.inView('.bento-card, .story, .steps article',element=>{Motion.animate(element,{opacity:[.3,1],y:[35,0]},{duration:.7,ease:'easeOut'})},{amount:.15});
+ Motion.inView('.bento-card, .steps article',element=>{Motion.animate(element,{opacity:[.3,1],y:[35,0]},{duration:.7,ease:'easeOut'})},{amount:.15});
  document.querySelectorAll('.steps article').forEach((el,i)=>{el.addEventListener('pointerenter',()=>Motion.animate(el,{y:-12,rotate:i%2?2:-2},{duration:.35}));el.addEventListener('pointerleave',()=>Motion.animate(el,{y:0,rotate:0},{duration:.35}))});
 }
 let favorites=new Set(),shared=new Set(),galleryFilter='all',guestMode=false,allowDownloads=true;

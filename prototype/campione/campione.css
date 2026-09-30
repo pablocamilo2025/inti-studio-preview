@@ -7,3 +7,22 @@
 .hero-scroll .constellation{transform-origin:50% 47%;transform-style:preserve-3d}
 .hero-scroll .photo-card{backface-visibility:visible}
 .hero-scroll .photo-card:not(:first-child){opacity:0}
+
+/* Scroll-linked photographic columns, each travelling at its own speed. */
+.stories{padding-bottom:100px;overflow:hidden}
+.stories .section-top{display:block;text-align:center;margin:0 auto 55px}
+.stories .serif-note{display:block;margin-top:15px;font:16px/1.6 'Space Grotesk',Arial,sans-serif;color:var(--muted)}
+.story-window{height:900px;overflow:hidden;mask-image:linear-gradient(transparent,#000 9%,#000 88%,transparent)}
+.stories .story-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;padding:90px 0 0}
+.story-column{display:flex;flex-direction:column;gap:28px;min-width:0;will-change:transform}
+.stories .story{padding:0;border:1px solid #ffffff25;border-radius:12px;background:#191919;overflow:hidden;flex-shrink:0}
+.stories .story button{display:block;width:100%;text-align:left}
+.stories .story-image,.stories .story:nth-child(2) .story-image{height:350px;border-radius:0;overflow:hidden}
+.stories .story-image img{height:100%;width:100%;object-fit:cover;transition:transform .45s}
+.stories .story button:hover img{transform:scale(1.04)}
+.stories .story-label{display:block;padding:20px}
+.stories .story-label h3{font-size:21px;margin:0 0 8px}
+.stories .story-label span{display:block;font-size:10px}
+@media(max-width:800px){.stories .story-grid{gap:16px}.story-column{gap:18px}.stories .story-image,.stories .story:nth-child(2) .story-image{height:290px}.stories .story-label{padding:15px}.stories .story-label h3{font-size:18px}.story-window{height:760px}}
+@media(max-width:600px){.stories{padding-left:5%;padding-right:5%}.stories .story-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;padding-top:70px}.stories .story-image,.stories .story:nth-child(2) .story-image{height:240px}.stories .story-label{padding:13px 10px}.stories .story-label h3{font-size:16px}.story-window{height:1120px}}
+@media(prefers-reduced-motion:reduce){.story-window{height:auto;mask-image:none;overflow:visible}.stories .story-grid{padding-top:0}.story-column{will-change:auto}}
