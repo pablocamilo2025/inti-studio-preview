@@ -24,6 +24,10 @@ function animateHero(){
   const w=stage.clientWidth,h=stage.clientHeight;
   const initialWidth=mobile?125:170,initialHeight=mobile?165:220;
   const options={target,offset:['start start','end end']};
+  const cards=[...document.querySelectorAll('.photo-card')];
+  let drifting=false,driftAnimations=[];
+  const stopDrift=()=>{driftAnimations.forEach(a=>a.stop());driftAnimations=[]};
+  heroCleanup.push(()=>{stopDrift();cards.forEach(el=>el.style.translate='0px 0px')});
   document.querySelectorAll('.photo-card').forEach((el,i)=>{
     const [left,top,width,height,rotation]=layout[i];
     const cardWidth=mobile?w*Math.max(width,17)/100:w*width/100;
@@ -44,7 +48,17 @@ function animateHero(){
   if(reduced.matches){title.style.transform='translateY(0px)';title.style.opacity=1;return}
   const animation=Motion.animate(title,{transform:[`translateY(${mobile?130:180}px)`,'translateY(0px)','translateY(0px)'],opacity:[.75,1,1]},{duration:1,times:[0,.8,1],ease:'linear',autoplay:false});
   heroCleanup.push(Motion.scroll(animation,options),()=>animation.stop());
-  heroCleanup.push(Motion.scroll(progress=>{document.querySelectorAll('.photo-card').forEach((el,i)=>{el.inert=i>0&&progress<.025+i*.012})},options));
+  heroCleanup.push(Motion.scroll(progress=>{
+    cards.forEach((el,i)=>{el.inert=i>0&&progress<.025+i*.012});
+    const shouldDrift=progress>=.86;
+    if(shouldDrift===drifting)return;
+    drifting=shouldDrift;stopDrift();
+    cards.forEach((el,i)=>{
+      if(!drifting){driftAnimations.push(Motion.animate(el,{translate:'0px 0px'},{duration:.45,ease:'easeOut'}));return}
+      const dx=(mobile?7:14)*(i%2?1:-1),dy=(mobile?10:20)*(i%3?1:-1);
+      driftAnimations.push(Motion.animate(el,{translate:['0px 0px',`${dx}px ${dy}px`,`${-dx*.65}px ${-dy*.7}px`,'0px 0px']},{duration:7+i*.43,repeat:Infinity,ease:'easeInOut'}));
+    });
+  },options));
 }
 animateHero();
 let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(animateHero,150)});
