@@ -16,20 +16,37 @@ $('#contact-open').onclick=()=>$('#contact-dialog').showModal();$('#credits-open
 $('#contact-form').onsubmit=e=>{e.preventDefault();$('#form-result').textContent='La prueba está completa. En la web final recibiréis una confirmación; aquí no se han enviado ni guardado datos.'};
 let toastTimer;function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),4200)}
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-let heroCleanup=[];
+let heroCleanup=[],entrancePlayed=false;
 function animateHero(){
  heroCleanup.forEach(fn=>fn());heroCleanup=[];
  const stage=$('#constellation');if(!stage.clientWidth)return;
- const mobile=innerWidth<600;
- document.querySelectorAll('.photo-card').forEach((el,i)=>{
-  const angle=layout[i][4];el.style.zIndex=String(i===0?5:i+1);
-  if(reduced.matches){el.style.opacity=1;el.style.transform=`rotate(${angle}deg)`;return}
-  const intro=Motion.animate(el,{opacity:[0,1],scale:[.75,1],y:[80,0],rotate:[0,angle]},{duration:1.2,delay:i*.08,ease:[.22,.8,.3,1]});
+ const mobile=innerWidth<600,w=stage.clientWidth,h=stage.clientHeight;
+ const playEntrance=!entrancePlayed&&!reduced.matches;
+ entrancePlayed=true;
+ const cards=[...document.querySelectorAll('.photo-card')];
+ cards.forEach((el,i)=>{
+  const [left,top,width,height,angle]=layout[i];
+  el.style.zIndex=String(i===0?10:i+1);
+  const x=w*(.5-left/100-width/200),y=h*(.47-top/100-height/200);
+  const sx=(mobile?155:235)/(w*width/100),sy=(mobile?235:350)/(h*height/100);
+  const stacked=`translate(${x}px,${y}px) rotate(0deg) scale(${sx},${sy})`;
+  const final=`translate(0px,0px) rotate(${angle}deg) scale(1,1)`;
+  if(playEntrance){
+   el.inert=i>0;
+   const intro=Motion.animate(el,{transform:[stacked,stacked,stacked,final],opacity:i===0?[1,1,1,1]:[0,0,1,1]},{duration:2.8,times:[0,.48,.52,1],ease:[.22,.8,.3,1]});
+   heroCleanup.push(()=>intro.stop());
+   intro.then(()=>{el.inert=false});
+  }else{el.style.opacity=1;el.style.transform=final;el.inert=false}
+  if(reduced.matches)return;
   const parallax=Motion.animate(el,{translate:['0px 0px',`${(i%2?1:-1)*(mobile?20:75)}px ${-30-i*14}px`]},{duration:1,ease:'linear',autoplay:false});
-  heroCleanup.push(()=>intro.stop(),Motion.scroll(parallax,{target:$('#home'),offset:['start start','end start']}),()=>parallax.stop());
+  heroCleanup.push(Motion.scroll(parallax,{target:$('#home'),offset:['start start','end start']}),()=>parallax.stop());
  });
+ if(playEntrance){
+  const spin=Motion.animate(stage,{rotateY:[0,0,720,720]},{duration:2.8,times:[0,.26,.52,1],ease:['linear',[.65,0,.25,1],'linear']});
+  heroCleanup.push(()=>{spin.stop();stage.style.transform='none'});
+ }else{stage.style.transform='none'}
 }
-animateHero();let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(animateHero,150)});reduced.addEventListener('change',animateHero);
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(animateHero,150)});reduced.addEventListener('change',animateHero);
 if(!reduced.matches){
  Motion.inView('.bento-card, .story, .steps article',element=>{Motion.animate(element,{opacity:[.3,1],y:[35,0]},{duration:.7,ease:'easeOut'})},{amount:.15});
  document.querySelectorAll('.steps article').forEach((el,i)=>{el.addEventListener('pointerenter',()=>Motion.animate(el,{y:-12,rotate:i%2?2:-2},{duration:.35}));el.addEventListener('pointerleave',()=>Motion.animate(el,{y:0,rotate:0},{duration:.35}))});
