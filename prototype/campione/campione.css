@@ -37,3 +37,7 @@
 .steps .step-scene:nth-child(3) article{background:#282222}
 @media(max-width:800px){.steps{grid-template-columns:1fr;gap:38px;max-width:520px;margin-inline:auto}.step-scene{height:580px}.step-portrait{width:66%;left:17%;height:340px}.steps .step-scene article{min-height:210px}}
 @media(prefers-reduced-motion:reduce){.step-portrait{will-change:auto}}
+
+.hero-swap{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.manifesto .steps{grid-template-columns:minmax(0,1fr);max-width:520px;margin-inline:auto;gap:60px}
+.manifesto .step-portrait{width:66%;left:17%;height:340px}

@@ -49,7 +49,7 @@ function animateHero(){
   const final=`translate(0px,0px) rotate(${angle}deg) scale(1,1)`;
   if(playEntrance){
    el.inert=i>0;
-   const intro=Motion.animate(el,{transform:[stacked,stacked,stacked,final],opacity:i===0?[1,1,1,1]:[0,0,1,1]},{duration:2.8,times:[0,.48,.52,1],ease:[.22,.8,.3,1]});
+   const intro=Motion.animate(el,{transform:[stacked,stacked,stacked,final],opacity:i===0?[1,1,1,1]:[0,0,1,1]},{duration:4.6,times:[0,.62,.66,1],ease:[.22,.8,.3,1]});
    heroCleanup.push(()=>intro.stop());
    intro.then(()=>{el.inert=false});
   }else{el.style.opacity=1;el.style.transform=final;el.inert=false}
@@ -58,9 +58,32 @@ function animateHero(){
   heroCleanup.push(Motion.scroll(parallax,{target:$('#home'),offset:['start start','end start']}),()=>parallax.stop());
  });
  if(playEntrance){
-  const spin=Motion.animate(stage,{rotateY:[0,0,720,720]},{duration:2.8,times:[0,.26,.52,1],ease:['linear',[.65,0,.25,1],'linear']});
+  const spin=Motion.animate(stage,{rotateY:[0,0,360,360]},{duration:4.6,times:[0,.20,.66,1],ease:['linear',[.65,0,.25,1],'linear']});
   heroCleanup.push(()=>{spin.stop();stage.style.transform='none'});
  }else{stage.style.transform='none'}
+ if(!reduced.matches){
+  let stopped=false,timer,fade;
+  const primary=cards[0];
+  const cycle=async()=>{
+   if(stopped)return;
+   const bounds=stage.getBoundingClientRect();
+   if(document.hidden||bounds.bottom<0||bounds.top>innerHeight||$('#public-view').hidden){timer=setTimeout(cycle,4000);return}
+   const next=(Number(primary.dataset.photo)+1)%photos.length;
+   const photo=photos[next],incoming=new Image();
+   incoming.src=photo.src;incoming.alt=photo.alt;incoming.className='hero-swap';
+   try{await incoming.decode()}catch{if(!stopped)timer=setTimeout(cycle,4000);return}
+   if(stopped)return;
+   primary.append(incoming);
+   fade=Motion.animate(incoming,{opacity:[0,1]},{duration:1.2,ease:'easeInOut'});
+   await fade;
+   if(stopped)return;
+   primary.querySelector('img:not(.hero-swap)').remove();incoming.classList.remove('hero-swap');
+   primary.dataset.photo=String(next);primary.setAttribute('aria-label',`Ver: ${photo.alt}`);
+   timer=setTimeout(cycle,4000);
+  };
+  timer=setTimeout(cycle,playEntrance?6500:4000);
+  heroCleanup.push(()=>{stopped=true;clearTimeout(timer);if(fade)fade.stop();primary.querySelector('.hero-swap')?.remove()});
+ }
 }
 let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(animateHero,150)});reduced.addEventListener('change',animateHero);
 if(!reduced.matches){
